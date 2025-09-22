@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE XML>
+<included>
+
+ 	<!-- Hide logback configuration logging. --> 
+	<statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+
+	<property name="DEFAULT_LOG_PATTERN"
+		value="%date{yyyy-MM-dd HH:mm:ss} %-15.15contextName %-5.5level - %-40.40logger{15} - %msg%n" />
+	<property name="DEFAULT_CHARSET" value="utf8" />
+	<property name="LOG_OUTPUT_PATH" value="\logs" />
+
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder name="defaultEncoder">
+			<pattern>${DEFAULT_LOG_PATTERN}</pattern>
+			<charset>${DEFAULT_CHARSET}</charset>
+		</encoder>
+	</appender>
+
+	<appender name="FILE_SIFT" class="ch.qos.logback.classic.sift.SiftingAppender">
+		<discriminator
+			class="ch.qos.logback.classic.sift.JNDIBasedContextDiscriminator">
+			<defaultValue>unknown</defaultValue>
+		</discriminator>
+		<sift>
+			<appender name="FILE-${contextName}"
+				class="ch.qos.logback.core.rolling.RollingFileAppender">
+				<file>${LOG_OUTPUT_PATH}\${contextName}\${contextName}.log</file>
+				<prudent>true</prudent>
+				<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+					<fileNamePattern>${LOG_OUTPUT_PATH}\${contextName}\${contextName}_%d{yyyy_MM_dd}.log
+					</fileNamePattern>
+					<maxHistory>90</maxHistory>
+					<totalSizeCap>30GB</totalSizeCap>
+				</rollingPolicy>
+				<encoder>
+					<pattern>${DEFAULT_LOG_PATTERN}</pattern>
+					<charset>${DEFAULT_CHARSET}</charset>
+				</encoder>
+			</appender>
+		</sift>
+	</appender>
+
+</included>

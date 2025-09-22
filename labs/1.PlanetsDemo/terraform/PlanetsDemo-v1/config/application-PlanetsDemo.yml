@@ -1,0 +1,9 @@
+# Logback context logger integration.
+logging.config : classpath:logback-PlanetsDemo.xml
+# Limits Spring logger output.
+logging.level.org.springframework.beans.factory.support.DefaultListableBeanFactory : WARN
+logging.level.org.springframework.statemachine : WARN
+
+# Datasource declaration
+# If the datasource support mode is not static-xa, spring JTA transactions autoconfiguration must me disabled
+spring.jta.enabled : false

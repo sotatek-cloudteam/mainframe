@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE XML>
+<configuration>
+
+	<include file="./config/logback/logback-utils.xml" />
+
+	<root level="info">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="FILE_SIFT" />
+	</root>
+	
+</configuration>

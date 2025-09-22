@@ -1,0 +1,9 @@
+*.docx
+*.pdf
+pandoc
+!format/*.docx
+.DS_Store
+log.json
+mermaid-filter.err
+.idea
+.terraform*
