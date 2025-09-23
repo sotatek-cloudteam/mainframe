@@ -148,6 +148,7 @@ Resources:
     Properties:
       ApplicationId: !GetAtt M2App.ApplicationId
       EnvironmentId: !GetAtt M2Env.EnvironmentId
+      ApplicationVersion: 1
 
   M2AppDef:
     Type: AWS::SSM::Parameter
