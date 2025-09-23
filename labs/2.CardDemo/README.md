@@ -6,10 +6,24 @@ Note: The template creates AWS resources that may incur costs.
 
 ### Prerequisites
 
-- **Download artifacts**: `IC3-card-demo-zip` and `datasets_Mainframe_ebcdic.zip` (contain the CardDemo sample and datasets).
-- **Create an S3 bucket**: for example, `my-carddemo-bucket` to store artifacts.
+- **Command-line tools**: `bash`, `make`, `g++` (or `clang++`), `unzip`, `sed`, `mktemp`
+- **AWS CLI v2**: Installed and configured (`aws configure`). Set a default region or pass `AWS_REGION` when running.
+- **AWS credentials/permissions** (role or user) allowing:
+  - **S3**: `CreateBucket`, `PutObject`, `GetObject`, `ListBucket`
+  - **CloudFormation**: `CreateStack`, `UpdateStack`, `DeleteStack`, `Describe*`
+  - **IAM**: `PassRole`, `CreateRole`, `PutRolePolicy` (template uses `CAPABILITY_NAMED_IAM`)
+  - **Mainframe Modernization (M2)**: full access to create environment and application
+  - **RDS (Aurora PostgreSQL)**: create cluster/instance, subnet group, parameter group
+  - **Secrets Manager**: create secret and target attachment
+  - **KMS**: create key and allow decrypt by M2 service
+  - **EC2**: security groups and use of existing VPC/subnets
+  - **SSM Parameter Store**: create parameters
+- **Network**: Existing `VPC` and two `Subnet` IDs (same VPC) you can pass to the script via `VPC_ID`, `SUBNET1_ID`, `SUBNET2_ID` (or use the provided defaults if valid in your account).
+- **S3 uploads are automated**: You do not need to pre-create or manually upload to an S3 bucket. The deploy script creates/reuses a bucket and syncs all required artifacts for you.
 
 ### Step 1: Prepare to set up CardDemo (using local sources)
+
+Upload and deployment can be handled end-to-end by the Makefile/script. The manual steps below are optional if you prefer doing it yourself.
 
 Upload the CardDemo sample files and edit the AWS CloudFormation template that will create the CardDemo application.
 
@@ -102,7 +116,7 @@ Example using `c3270`:
 c3270 -port <port-number> <dns-hostname>
 ```
 
-- **port**: The port from the application details page (e.g., `6000`).
+- **port**: The port from the application details page (e.g., `7000`).
 - **Hostname**: The DNS Hostname from the application details page.
 
 Refer to the application details page in the console to locate the Port and DNS Hostname.

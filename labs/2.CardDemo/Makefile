@@ -5,7 +5,7 @@ SHELL := /bin/bash
 
 AWS_REGION ?= us-east-1
 STACK_NAME ?= carddemo-stack
-S3_BUCKET  ?=
+S3_BUCKET  ?= carddemo-bucket-115228050885
 S3_PREFIX  ?= IC3-card-demo/mf/card-demo
 
 LAB_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))

@@ -99,6 +99,11 @@ Parameters:
     Default: 't2.micro'
     Type: String
 
+  DbInstanceType:
+    Description: 'aurora db instance class'
+    Default: 'db.t4g.medium'
+    Type: String
+
 Resources:
 
   M2Env:
@@ -139,16 +144,16 @@ Resources:
       Tags:
         'app-name': !GetAtt M2Name.Value
 
-  M2Deployment:
-    Type: AWS::M2::Deployment
-    DeletionPolicy: Delete
-    DependsOn:
-      - M2App
-      - M2Env
-    Properties:
-      ApplicationId: !GetAtt M2App.ApplicationId
-      EnvironmentId: !GetAtt M2Env.EnvironmentId
-      ApplicationVersion: 1
+  # M2Deployment:
+  #   Type: AWS::M2::Deployment
+  #   DeletionPolicy: Delete
+  #   DependsOn:
+  #     - M2App
+  #     - M2Env
+  #   Properties:
+  #     ApplicationId: !GetAtt M2App.ApplicationId
+  #     EnvironmentId: !GetAtt M2Env.EnvironmentId
+  #     ApplicationVersion: 1
 
   M2AppDef:
     Type: AWS::SSM::Parameter
@@ -222,6 +227,21 @@ Resources:
       VpcSecurityGroupIds:
         - !GetAtt M2VpcSecGroup.GroupId
       DBSubnetGroupName: !Ref M2DBSubnetGroup
+
+    # This is the missing piece!
+  M2DbInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      DBClusterIdentifier: !Ref M2DbCluster # Links this instance to the cluster
+      DBInstanceClass: !Ref DbInstanceType # Choose an appropriate instance class
+      Engine: 'aurora-postgresql'
+      SourceDBInstanceIdentifier: !Ref 'AWS::NoValue' # Prevent accidental creation from a snapshot
+      DBSubnetGroupName: !Ref M2DBSubnetGroup
+      PubliclyAccessible: false
+      Tags:
+        - Key: Name
+          Value: M2DbInstance
 
   M2DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
@@ -364,10 +384,6 @@ Outputs:
   M2ImportJson:
     Description: 'm2 datasets Json for import'
     Value: !Ref ImportJsonPath
-
-  M2DeploymentId:
-    Description: 'm2 deployment id'
-    Value: !Ref M2Deployment
 
   M2AppDef:
     Description: 'm2 app def'
