@@ -1,0 +1,49 @@
+{
+  "status": "DONE",
+  "transform": {
+    "startDate": "2025-09-23 01:58:28.949",
+    "endDate": "2025-09-23 01:58:31.462",
+    "status": "DONE",
+    "metrics": {
+      "nbArtifacts": 2,
+      "nbIgnoredArtifacts": 0,
+      "nbSuccessArtifacts": 2,
+      "nbWarningArtifacts": 0,
+      "nbErrorArtifacts": 0,
+      "nbFatalArtifacts": 0
+    },
+    "outputs": [
+      "Problem.csv",
+      "problems.log",
+      "report/analyzer-info.json",
+      "report/classification.ini",
+      "report/html/3rd-party/jszip/2.5.0/jszip.min.js",
+      "report/html/3rd-party/myquery/3.7.1/myquery-3.7.1.min.js",
+      "report/html/3rd-party/myquery/datatables/1.10.20/myquery.dataTables.min.js",
+      "report/html/3rd-party/myquery/datatables/bootstrap4/dataTables.bootstrap4.min.css",
+      "report/html/3rd-party/myquery/datatables/bootstrap4/dataTables.bootstrap4.min.js",
+      "report/html/3rd-party/myquery/datatables/buttons/1.6.1/buttons.colVis.min.js",
+      "report/html/3rd-party/myquery/datatables/buttons/1.6.1/buttons.dataTables.min.css",
+      "report/html/3rd-party/myquery/datatables/buttons/1.6.1/buttons.html5.min.js",
+      "report/html/3rd-party/myquery/datatables/buttons/1.6.1/buttons.print.min.js",
+      "report/html/3rd-party/myquery/datatables/buttons/1.6.1/dataTables.buttons.min.js",
+      "report/html/3rd-party/myquery/datatables/select/1.3.1/dataTables.select.min.js",
+      "report/html/3rd-party/myquery/datatables/select/1.3.1/select.dataTables.min.css",
+      "report/html/3rd-party/pdfmake/0.1.36/pdfmake.min.js",
+      "report/html/3rd-party/pdfmake/0.1.36/vfs_fonts.js",
+      "report/html/3rd-party/select2/4.0.13/select2.min.css",
+      "report/html/3rd-party/select2/4.0.13/select2.min.js",
+      "report/html/3rd-party/twitter-bootstrap/5.0.2/bootstrap.min.css",
+      "report/html/3rd-party/twitter-bootstrap/5.0.2/bootstrap.min.js",
+      "report/html/details_close.png",
+      "report/html/details_open.png",
+      "report/html/http-server.jar",
+      "report/html/open.bat",
+      "report/html/problems.html",
+      "report/html/problems.json",
+      "report/result.csv",
+      "report/transform-status-report.xlsx"
+    ],
+    "workflow": {}
+  }
+}

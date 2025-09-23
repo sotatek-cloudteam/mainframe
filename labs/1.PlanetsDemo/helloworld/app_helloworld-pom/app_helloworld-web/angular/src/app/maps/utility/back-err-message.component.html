@@ -1,0 +1,16 @@
+<div [ngStyle]="mapDivStyle()">
+    <div class='lgr_col back-err-main'>
+        <div class='lgr_60 lgo_02'><dynamic-field [id]='"title"' [size]=60 [(ngModel)]='title'></dynamic-field></div>
+    </div>
+    <div class='lgr_col empty back-err-main'></div>
+    <div class='lgr_col back-err-main'>
+        <div class='lgr_60 lgo_02'><dynamic-field [id]='"errorMessage"' [size]=60 [(ngModel)]='errorMessage'></dynamic-field></div>
+    </div>
+    <div class='lgr_col back-err-main'>
+        <div class='lgr_60 lgo_02'><dynamic-field [id]='"errorSubMessage"' [size]=60 [(ngModel)]='errorSubMessage'></dynamic-field></div>
+    </div>
+    <div class='lgr_col empty back-err-main'></div>
+    <div class='lgr_col center-self back-err-main'>
+        <button class="btn btn-default" (click)="goToTransactionRunner()">{{buttonMessage.value}}</button>
+    </div>
+</div>

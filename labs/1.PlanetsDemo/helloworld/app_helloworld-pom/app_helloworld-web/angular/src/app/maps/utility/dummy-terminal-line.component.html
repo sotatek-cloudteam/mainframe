@@ -1,0 +1,15 @@
+
+<div [ngStyle]="mapDivStyle()" style="pointer-events: visible">
+    <div *ngIf="enableInput" class='lgr_col lgr_dummy' >
+      <div [ngClass]="computeInputVisibility()" class="lgr_04 col_01 low default prot und"><span>＝＞</span></div>
+      <div [ngClass]="computeInputVisibility()" class='lgr_16 col_08 low default unprot und green outline_top outline_bottom outline_left outline_right'><dynamic-field [id]='"dummyLine"' [size]=16 [(ngModel)]='dummyLine'></dynamic-field></div>
+      <div class='lgr_col'>
+        <div class='lgr_40 col_25 high prot und red'><span id='checkMessage' [innerText]="checkMessage"></span></div>
+        <div class='lgr_5 col_75 default prot und green'><span id='pageNumber' [innerText]="pageNumber"></span></div>
+      </div>
+    </div>
+    <div *ngIf="enableLine" class='lgr_col dummy_line lgr_dummy'>
+      <div class='lgr_80 col_01 outline_top'></div>
+    </div>
+</div>
+  

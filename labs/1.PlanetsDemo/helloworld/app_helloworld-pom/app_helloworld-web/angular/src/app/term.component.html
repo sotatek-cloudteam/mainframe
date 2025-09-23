@@ -1,0 +1,86 @@
+<div *ngIf="!configuration.useModernLegacyStyle; else modernLegacyStyle" class="term">
+    <div #dynamicTarget></div>
+</div>
+<ng-template #modernLegacyStyle>
+    <form class="form-horizontal" role="form">
+        <!-- shape -->
+        <!-- brand -->
+        <nav id="rd_brand" class="navbar navbar-default navbar-static-top navbar-expand-lg">
+            <div class="container-fluid">
+            	<div>
+                    <a class="navbar-header navbar-brand" href="#"><i class="fa fa-list-alt" aria-hidden="true"></i> {{configuration.webApp.name}}</a>
+                </div>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="icon-bar navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                    </ul>
+                    <ul class="nav navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link" (click)="toggleOverwriteMode()">{{appService.insertMode ? 'Insert Mode' : 'Overwrite Mode'}}</a></li>
+                    </ul>
+                    <ul class="nav navbar-nav">
+                        <li *ngIf="!appService.getErrorState() && configService.getLockOnError()" class="nav-item"><a class="nav-link" style="pointer-events: none; cursor: default;" href="#"><i  class="fa fa-lock-open" aria-hidden="true"></i></a></li>
+                        <li *ngIf="appService.getLockScreenKeyboardState() || (appService.getErrorState() && configService.getLockOnError())" class="nav-item"><a class="nav-link" style="pointer-events: none; cursor: default;" href="#"><i class="fa fa-lock" style="color:red" aria-hidden="true"></i></a></li>
+                        <li class="nav-item dropdown"><a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Setup</a>
+                            <ul class="dropdown-menu rd_csw" data-csw-id="rd_content">
+                                <li><a class="dropdown-item" (click)="changeWidthSetup(1)" [class.selected-style]="selectedWidthMode === 1">Adaptative</a></li>
+                                <li><a class="dropdown-item" (click)="changeWidthSetup(2)" [class.selected-style]="selectedWidthMode === 2">Fixed width</a></li>
+                                <li><a class="dropdown-item" (click)="changeWidthSetup(3)" [class.selected-style]="selectedWidthMode === 3">Full width</a></li>
+                                <li><a class="dropdown-item" (click)="changeDebugGrid(!isDebugGrid)" [class.selected-style]="isDebugGrid">Debug mode</a></li>
+                                <li><a class="dropdown-item" (click)="changeSpinner(!isSpinner)">{{isSpinner ? 'Hide spinner' : 'Show spinner'}}</a></li>
+                                <li><a class="dropdown-item" (click)="changeCursorOverwrite()">Overwrite Cursor Style : {{overwriteCursor}}</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown"><a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Theme</a>
+                            <ul class="dropdown-menu rd_csw">
+                                <li *ngFor="let template of terminalConfig.style.templates">
+                                    <a class="dropdown-item" [class.selected-style]="template.name === selectedTemplate" (click)="changeStyleScheme(template.name)">{{template.displayName}}</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item"><a class="nav-link" href="/"><i class="fa fa-times-circle" aria-hidden="true"></i> Quit</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- end brand -->
+        <!-- shape_l1 -->
+        <div id="rd_content" [ngClass]="termState.containerClasses" [class.lgr_showgrid]="isDebugGrid" (wheel)="onWheel($event)">
+            <div class="row">
+                <!-- rd_col01 -->
+                <div id="rd_col01" class="col-12 position-relative" [ngClass]="termState.heightClasses">
+                    <div id="rd_col01_l1">
+                        <!-- legacy area -->
+                        <div #dynamicTarget></div>
+                        <!-- end legacy area -->
+                    </div>
+                </div>
+                <!-- end rd_col01 -->
+            </div>
+        </div>
+        <!-- end shape_l1 -->
+        <!-- footer -->
+        <div class="footer">
+            <div class="footer_l1">
+                <div id="idFooter" class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-3">
+                            <p>&copy; {{currentYear | date:'yyyy'}} <span class="text-footer">{{configuration.webApp.name}}</span></p>
+                        </div>
+                        <div class="col-6 text-center">
+                            <p>{{footerMessage}}</p>
+                        </div>
+                        <div class="col-1">
+                            <mat-spinner *ngIf="configuration.spinner && isSpinning()" diameter="30" color="primary"></mat-spinner>
+                        </div>
+                        <div class="col-2 text-end">
+                            <p>{{configuration.webApp.version}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- end footer -->
+    </form>
+</ng-template>

@@ -1,0 +1,18 @@
+{
+  "name": "main.jcl",
+  "relPath": "main.jcl",
+  "nbLines": 11,
+  "language": "JCL",
+  "transform": {
+    "bluageUtilsFails": [],
+    "issues": [],
+    "startDate": "2025-09-23 01:58:29.346",
+    "endDate": "2025-09-23 01:58:29.740",
+    "status": "SUCCESS",
+    "outputs": [
+      "jcl/groovy/main.jcl.groovy",
+      "jcl/prepro/main.jcl.prepro"
+    ],
+    "tags": []
+  }
+}

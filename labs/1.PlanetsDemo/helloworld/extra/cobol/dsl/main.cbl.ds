@@ -1,0 +1,7 @@
+options {
+	initDefaultByte : 0,
+	legacySystem : ZOS,
+	outDD : STDOUT,
+	dateFormatMode : ISO
+}
+

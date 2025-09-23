@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+<!-- Project type: pom, project name: app_helloworld-pom -->
+	<classpathentry combineaccessrules="false" kind="src" path="/app_helloworld-tools"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app_helloworld-entities"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app_helloworld-service"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app_helloworld-web"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER"/>
+	<classpathentry kind="output" path="classes"/>
+</classpath>
