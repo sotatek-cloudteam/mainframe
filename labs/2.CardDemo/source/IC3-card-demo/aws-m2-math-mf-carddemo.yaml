@@ -1,0 +1,378 @@
+---
+Description: 'stack for MF card demo'
+
+Parameters:
+
+  Label:
+    Description: 'math label'
+    Default: 'aws-m2-math-mf-carddemo'
+    Type: String
+
+  DbName:
+    Description: 'm2 db name'
+    Default: 'MfCardDemoDb'
+    Type: String
+
+  EngineType:
+    Description: 'm2 engine type'
+    Default: 'microfocus'
+    Type: String
+
+  EngineVersion:
+    Description: 'm2 engine version'
+    Default: '8.0.6'
+    Type: String
+
+  InstanceType:
+    Description: 'm2 instance type'
+    Default: 'M2.m5.large'
+    Type: String
+
+  #use with HighAvailabilityConfig parameter if you need HA
+  DesiredCapacity:
+    Description: 'm2 desired capacity'
+    Default: 2
+    Type: Number
+
+  AppKey:
+    Description: 's3 app key'
+    Default: 'IC3-card-demo/mf/card-demo'
+    Type: String
+
+  JclKey:
+    Description: 's3 jcl key'
+    Default: 'catalog/jcl'
+    Type: String
+
+  LoadlibKey:
+    Description: 's3 jcl key'
+    Default: 'loadlib'
+    Type: String
+
+  RdefKey:
+    Description: 's3 jcl key'
+    Default: 'rdef'
+    Type: String
+
+  SitKey:
+    Description: 's3 jcl key'
+    Default: 'CARDSIT'
+    Type: String
+
+  BucketName:
+    Description: 'bucket name'
+    Type: String
+    Default: 'my-carddemo-bucket'
+
+  ImportJsonPath:
+    Description: 'S3 path of datasets Json for import'
+    Type: String
+    Default: 's3://my-carddemo-bucket/IC3-card-demo/mf-carddemo-datasets-import.json'
+    
+  VpcId:
+    Description: 'Existing VPC ID'
+    Type: String
+    Default: 'vpc-0d13f4a066e668ecd'
+
+  Subnet1Id:
+    Description: 'Existing Subnet 1 ID'
+    Type: String
+    Default: 'subnet-06cb8fef122bc5b87'
+
+  Subnet2Id:
+    Description: 'Existing Subnet 2 ID'
+    Type: String
+    Default: 'subnet-0b1f0f779b4afa44c'
+
+  Tn3270Port:
+    Description: 'm2 tn3270 port'
+    Default: 7000
+    Type: Number
+
+  PostgresPort:
+    Description: 'm2 postgres port'
+    Default: 5432
+    Type: Number
+
+  EC2InstanceType:
+    Description: 'ec2 instance type'
+    Default: 't2.micro'
+    Type: String
+
+Resources:
+
+  M2Env:
+    Type: AWS::M2::Environment
+    DeletionPolicy: Delete
+    Properties:
+      Name: !GetAtt M2Name.Value
+      Description: !Join
+        - ' '
+        -  - 'm2 environment:'
+           - !GetAtt M2Name.Value
+      PreferredMaintenanceWindow: 'sun:00:00-sun:01:00'
+      EngineType: !Ref EngineType
+      EngineVersion: !Ref EngineVersion
+      InstanceType: !Ref InstanceType
+      PubliclyAccessible: true
+      SubnetIds: 
+        - !Ref Subnet1Id
+        - !Ref Subnet2Id
+      SecurityGroupIds:
+        - !GetAtt M2VpcSecGroup.GroupId
+      Tags:
+        'env-name': !GetAtt M2Name.Value
+
+  M2App:
+    Type: AWS::M2::Application
+    DeletionPolicy: Delete
+    DependsOn: M2DbCluster
+    Properties:
+      Name: !GetAtt M2Name.Value
+      Description: !Join
+        - ' '
+        -  - 'm2 application:'
+           - !GetAtt M2Name.Value
+      EngineType: !Ref EngineType
+      Definition:
+        Content: !GetAtt M2AppDef.Value
+      Tags:
+        'app-name': !GetAtt M2Name.Value
+
+  M2Deployment:
+    Type: AWS::M2::Deployment
+    DeletionPolicy: Delete
+    DependsOn:
+      - M2App
+      - M2Env
+    Properties:
+      ApplicationId: !GetAtt M2App.ApplicationId
+      EnvironmentId: !GetAtt M2Env.EnvironmentId
+
+  M2AppDef:
+    Type: AWS::SSM::Parameter
+    DeletionPolicy: Delete
+    Properties:
+      Type: 'String'
+      Value: !Sub | 
+        {
+          "template-version": "2.0",
+          "source-locations": [
+            {
+              "source-id": "s3-source",
+              "source-type": "s3",
+              "properties": {
+                "s3-bucket": "${BucketName}",
+                "s3-key-prefix": "${AppKey}"
+              }
+            }
+          ],
+          "definition": {
+            "listeners": [
+              {
+                "port": ${Tn3270Port},
+                "type": "tn3270"
+              }
+            ],
+            "dataset-location": {
+              "db-locations": [
+                {
+                  "name": "${M2DbName.Value}",
+                  "secret-manager-arn": "${M2DbSecret}"
+                }
+              ]
+            },
+            "batch-settings": {
+              "initiators": [
+                {
+                  "classes": ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","0","1","2","3","4","5","6","7","8","9"],
+                  "description": "batch initiators for all job classes"
+                }
+              ],
+              "jcl-file-location": "${!s3-source}/${JclKey}"
+            },
+            "cics-settings": {
+              "binary-file-location": "${!s3-source}/${LoadlibKey}",
+              "csd-file-location": "${!s3-source}/${RdefKey}",
+              "system-initialization-table": "${SitKey}"
+            },
+            "xa-resources": [
+              {
+                "name": "XASQL",
+                "secret-manager-arn": "${M2DbSecret}",
+                "module": "${!s3-source}/xa/ESPGSQLXA64.so"
+              }
+            ]
+          }
+        }
+      
+  M2DbCluster:
+    Type: AWS::RDS::DBCluster
+    DeletionPolicy: Delete
+    Properties:
+      DatabaseName: !GetAtt M2DbName.Value
+      Port: !Ref PostgresPort
+      DBClusterParameterGroupName: !Ref M2DbClusterParameterGroup
+      MasterUsername: !Sub "{{resolve:secretsmanager:${M2DbSecret}::username}}"
+      MasterUserPassword: !Sub "{{resolve:secretsmanager:${M2DbSecret}::password}}"
+      Engine: 'aurora-postgresql'
+      EngineVersion: "15.10"
+      EngineMode: 'provisioned'
+      VpcSecurityGroupIds:
+        - !GetAtt M2VpcSecGroup.GroupId
+      DBSubnetGroupName: !Ref M2DBSubnetGroup
+
+  M2DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    DeletionPolicy: Delete
+    Properties:
+      DBSubnetGroupDescription: 'subnet group for db cluster'
+      SubnetIds: 
+        - !Ref Subnet1Id
+        - !Ref Subnet2Id
+
+  M2DbClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    DeletionPolicy: Delete
+    Properties:
+      Description: 'parameter group for M2 db cluster'
+      Family: 'aurora-postgresql15'
+      Parameters:
+        max_prepared_transactions: 100
+
+  M2DbSecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Delete
+    Properties:
+      Description: 'database credentials for m2 app'
+      KmsKeyId: !GetAtt M2KmsKey.Arn
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "dbadmin"}'
+        GenerateStringKey: 'password'
+        PasswordLength: 16
+        ExcludePunctuation: true
+
+  M2DbSecretTargetAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    DeletionPolicy: Delete
+    Properties:
+      TargetType: 'AWS::RDS::DBCluster'
+      SecretId: !Ref M2DbSecret
+      TargetId: !Ref M2DbCluster
+      
+  M2DbSecretResourcePolicy:
+    Type: AWS::SecretsManager::ResourcePolicy
+    DeletionPolicy: Delete
+    Properties:
+      SecretId: !Ref M2DbSecret
+      ResourcePolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'm2.amazonaws.com'
+            Action: 'secretsmanager:*'
+            Resource: '*'
+
+  M2KmsKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Delete
+    Properties:
+      Description: 'symmetric key for m2 secret'
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: 2012-10-17
+        # Id: 'm2-kms-key'
+        Statement:
+          - Effect: 'Allow'
+            Principal: 
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: 'kms:*'
+            Resource: "*"
+          - Effect: 'Allow'
+            Principal:
+              Service: 'm2.amazonaws.com'
+            Action: 'kms:Decrypt'
+            Resource: '*'
+
+  M2VpcSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    DeletionPolicy: Delete
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: 'security group for vpc'
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: '0.0.0.0/0'
+          FromPort: 0
+          ToPort: 65535
+          Description: 'Allow outbound access'
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: '0.0.0.0/0'
+          FromPort: !Ref Tn3270Port
+          ToPort: !Ref Tn3270Port
+          Description: 'Allow inbound tn3270 access'
+
+  UniqueSuffix:
+    Type: AWS::SSM::Parameter
+    DeletionPolicy: Delete
+    Properties:
+      Type: 'String'
+      Value: !Select [0, !Split ['-', !Select [2, !Split [/, !Ref AWS::StackId ]]]]
+
+  M2Name:
+    Type: AWS::SSM::Parameter
+    DeletionPolicy: Delete
+    Properties:
+      Type: 'String'
+      Value: !Join
+        - '-'
+        -  - !Ref Label
+           - !GetAtt UniqueSuffix.Value
+
+  M2DbName:
+    Type: AWS::SSM::Parameter
+    DeletionPolicy: Delete
+    Properties:
+      Type: 'String'
+      Value: !Join
+        - ''
+        -  - !Ref DbName
+           - !GetAtt UniqueSuffix.Value
+
+      
+Outputs: 
+
+  M2BucketName:
+    Description: 'm2 app bucket'
+    Value: !Ref BucketName
+
+  M2AppKey:
+    Description: 's3 app key for m2 deployment'
+    Value: !Ref AppKey
+
+  M2EnvironmentId:
+    Description: 'm2 environment id'
+    Value: !GetAtt M2Env.EnvironmentId
+
+  M2ApplicationId:
+    Description: 'm2 application id'
+    Value: !GetAtt M2App.ApplicationId
+    
+  M2ImportJson:
+    Description: 'm2 datasets Json for import'
+    Value: !Ref ImportJsonPath
+
+  M2DeploymentId:
+    Description: 'm2 deployment id'
+    Value: !Ref M2Deployment
+
+  M2AppDef:
+    Description: 'm2 app def'
+    Value: !GetAtt M2AppDef.Value
+
+  M2DbName:
+    Description: 'm2 db name'
+    Value: !GetAtt M2DbName.Value
+

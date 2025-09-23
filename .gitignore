@@ -7,3 +7,5 @@ log.json
 mermaid-filter.err
 .idea
 .terraform*
+*.tfstate
+*.tfstate.backup

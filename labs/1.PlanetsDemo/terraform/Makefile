@@ -13,8 +13,8 @@ deploy_planet:
 
 # Destroy planet from AWS
 destroy_planet:
-	terraform destroy
+	terraform destroy --auto-approve
 
 clean:
 	rm -f PlanetsDemo-v1.zip
-	terraform destroy
+	make destroy_planet
