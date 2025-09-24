@@ -134,3 +134,9 @@ Before you dive into the hands-on lab, please review the dedicated CardDemo repl
 - [CardDemo Replatform Lab Guide](labs/2.CardDemo/README.md)
 
 Note: The CardDemo application and datasets used in this lab are sourced from the AWS sample repository: [aws-samples/aws-mainframe-modernization-carddemo](https://github.com/aws-samples/aws-mainframe-modernization-carddemo). This repository adapts that sample for demonstration purposes.
+
+## 2. Refactor
+
+For a walkthrough of automated refactoring (Blu Age) and deploying generated Java artifacts with Terraform and a Makefile, see:
+
+- [PlanetsDemo Refactor Lab Guide](labs/1.PlanetsDemo/README.md)
