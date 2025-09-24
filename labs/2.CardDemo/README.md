@@ -1,8 +1,42 @@
-### CardDemo Tutorial — Set up in AWS Mainframe Modernization Application Testing
+# CardDemo Tutorial — Set up in AWS Mainframe Modernization Application Testing
 
 This guide describes how to set up the CardDemo sample application for replatforming with Micro Focus on AWS Mainframe Modernization managed service, including use with AWS Mainframe Modernization Application Testing. The sample AWS CloudFormation template provisions a database, a runtime environment, an application, and a fully isolated network environment.
 
-Note: The template creates AWS resources that may incur costs.
+**Note**: The template creates AWS resources that may incur costs.
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Folder Structure](#folder-structure)
+3. [Step 1: Prepare to set up CardDemo](#step-1-prepare-to-set-up-carddemo-using-local-sources)
+4. [Step 2: Create all necessary resources](#step-2-create-all-necessary-resources)
+5. [Automation](#automation)
+6. [M2 Application Definition](#m2-application-definition)
+7. [Step 3: Deploy and start the application](#step-3-deploy-and-start-the-application)
+8. [Step 4: Import initial data](#step-4-import-initial-data)
+9. [Step 5: Connect to the CardDemo application](#step-5-connect-to-the-carddemo-application)
+
+## Folder Structure
+
+```
+labs/2.CardDemo/
+├── README.md                          # This documentation
+├── Makefile                           # Deployment automation
+├── scripts/
+│   └── deploy_carddemo.sh             # Main deployment script
+└── source/                            # CardDemo application source code
+    ├── IC3-card-demo/
+    │   ├── aws-m2-math-mf-carddemo.yaml    # CloudFormation template
+    │   └── mf-carddemo-datasets-import.json # Dataset import configuration
+    ├── catalog/                       # Mainframe catalog files
+    │   ├── ctl/                       # Control files
+    │   ├── data/                      # VSAM datasets and data files
+    │   ├── jcl/                       # Job Control Language files
+    │   └── proc/                      # Procedure files
+    ├── loadlib/                       # Load library (compiled programs)
+    ├── rdef/                          # Resource definitions
+    └── xa/                           # XA resource adapters
+```
 
 ### Prerequisites
 
@@ -13,7 +47,7 @@ Note: The template creates AWS resources that may incur costs.
   - **CloudFormation**: `CreateStack`, `UpdateStack`, `DeleteStack`, `Describe*`
   - **IAM**: `PassRole`, `CreateRole`, `PutRolePolicy` (template uses `CAPABILITY_NAMED_IAM`)
   - **Mainframe Modernization (M2)**: full access to create environment and application
-  - **RDS (Aurora PostgreSQL)**: create cluster/instance, subnet group, parameter group
+  - **RDS (Aurora PostgreSQL 15)**: create cluster/instance, subnet group, parameter group
   - **Secrets Manager**: create secret and target attachment
   - **KMS**: create key and allow decrypt by M2 service
   - **EC2**: security groups and use of existing VPC/subnets
@@ -82,7 +116,143 @@ If `S3_BUCKET` is omitted, the script generates a unique bucket name like `cardd
 
 You don't need to manually edit S3 paths inside `mf-carddemo-datasets-import.json`. The script updates them to point at `s3://$S3_BUCKET/$S3_PREFIX/...`.
 
+## M2 Application Definition
+
+The CloudFormation template includes an M2 Application Definition that tells AWS Mainframe Modernization how to configure and run the CardDemo application. This definition maps the mainframe application structure to AWS M2 services.
+
+### Application Definition Structure
+
+The `M2AppDef` resource contains a JSON configuration that defines:
+
+```json
+{
+  "template-version": "2.0",
+  "source-locations": [...],
+  "definition": {
+    "listeners": [...],
+    "dataset-location": {...},
+    "batch-settings": {...},
+    "cics-settings": {...},
+    "xa-resources": [...]
+  }
+}
+```
+
+### Field Explanations and Source Code Relationships
+
+#### 1. **Source Locations**
+```json
+"source-locations": [
+  {
+    "source-id": "s3-source",
+    "source-type": "s3",
+    "properties": {
+      "s3-bucket": "${BucketName}",
+      "s3-key-prefix": "${AppKey}"
+    }
+  }
+]
+```
+- **Purpose**: Defines where M2 can find the application source code
+- **Source Code Relationship**: Points to the `labs/2.CardDemo/source/` directory structure uploaded to S3
+- **Maps to**: All files under `catalog/`, `loadlib/`, `rdef/`, `xa/` folders
+
+#### 2. **Listeners**
+```json
+"listeners": [
+  {
+    "port": 7000,
+    "type": "tn3270"
+  }
+]
+```
+- **Purpose**: Defines how users connect to the mainframe application
+- **Source Code Relationship**: TN3270 is the standard terminal emulation protocol for mainframe access
+- **Maps to**: CICS transaction processing system that handles user interactions
+
+#### 3. **Dataset Location**
+```json
+"dataset-location": {
+  "db-locations": [
+    {
+      "name": "${M2DbName.Value}",
+      "secret-manager-arn": "${M2DbSecret}"
+    }
+  ]
+}
+```
+- **Purpose**: Defines where application data is stored (Aurora PostgreSQL database)
+- **Source Code Relationship**: Replaces traditional mainframe VSAM files with modern database storage
+- **Maps to**: All `.DAT` files in `catalog/data/` that get imported as database tables
+
+#### 4. **Batch Settings**
+```json
+"batch-settings": {
+  "initiators": [
+    {
+      "classes": ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","0","1","2","3","4","5","6","7","8","9"],
+      "description": "batch initiators for all job classes"
+    }
+  ],
+  "jcl-file-location": "${!s3-source}/catalog/jcl"
+}
+```
+- **Purpose**: Configures batch job processing capabilities
+- **Source Code Relationship**: 
+  - `initiators`: Defines job classes that can run batch jobs (A-Z, 0-9)
+  - `jcl-file-location`: Points to JCL files in `catalog/jcl/` directory
+- **Maps to**: All `.jcl` files in `catalog/jcl/` that define batch job workflows
+
+#### 5. **CICS Settings**
+```json
+"cics-settings": {
+  "binary-file-location": "${!s3-source}/loadlib",
+  "csd-file-location": "${!s3-source}/rdef",
+  "system-initialization-table": "CARDSIT"
+}
+```
+- **Purpose**: Configures the CICS (Customer Information Control System) transaction processing environment
+- **Source Code Relationship**:
+  - `binary-file-location`: Points to compiled programs in `loadlib/` directory
+  - `csd-file-location`: Points to resource definitions in `rdef/` directory  
+  - `system-initialization-table`: References the CICS system initialization table
+- **Maps to**: 
+  - `loadlib/`: Contains compiled COBOL programs (`.so` files)
+  - `rdef/`: Contains CICS resource definitions
+  - `CARDSIT`: System initialization table for CICS configuration
+
+#### 6. **XA Resources**
+```json
+"xa-resources": [
+  {
+    "name": "XASQL",
+    "secret-manager-arn": "${M2DbSecret}",
+    "module": "${!s3-source}/xa/ESPGSQLXA64.so"
+  }
+]
+```
+- **Purpose**: Configures XA (eXtended Architecture) resource managers for distributed transactions
+- **Source Code Relationship**: Enables the application to participate in distributed transactions with the database
+- **Maps to**: `xa/` directory containing XA resource adapter modules
+
+### How It All Works Together
+
+1. **Source Code Upload**: The deployment script uploads the entire `source/` directory structure to S3
+2. **Application Definition**: M2 reads this definition to understand how to configure the runtime environment
+3. **Runtime Configuration**: M2 creates a mainframe-like environment with:
+   - CICS transaction processing system
+   - Batch job processing capabilities  
+   - Database connectivity via XA resources
+   - TN3270 terminal access
+4. **Data Import**: The `mf-carddemo-datasets-import.json` maps traditional mainframe datasets to database tables
+
+This approach allows the CardDemo application to run on AWS M2 with minimal changes to the original mainframe code, while leveraging modern cloud infrastructure for scalability and reliability.
+
 ### Step 3: Deploy and start the application
+
+**Note**: The CloudFormation template now includes an M2 Deployment resource (currently commented out) that can automatically deploy the application to the environment. If you uncomment the `M2Deployment` resource in the template, the application will be deployed automatically during stack creation. But our application need to connect to with database so we don't auto deploy application here.
+
+Manual deployment (if M2Deployment is commented out):
 
 1. In the AWS Mainframe Modernization console, go to **Applications**.
 2. Choose the CardDemo application (e.g., `aws-m2-math-mf-carddemo-abc1d2e3`).
