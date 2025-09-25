@@ -56,6 +56,9 @@ The problems and challenges solved by the service include:
 
 ## Step 2: Processing and Transformation (Mainframe has two patterns)
 
+![compare](./images/compare.png)
+
+
 AWS Mainframe Modernization offers two primary patterns for processing the input source code:
 
 1. Path A: Automated Refactoring (Powered by AWS Blu Age)
