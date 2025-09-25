@@ -45,6 +45,8 @@ The problems and challenges solved by the service include:
 
 # Overview Flow of AWS Mainframe Modernization
 
+![flow](./images/flow.png)
+
 ## Step 1: Input and Assessment
 
 | Component                  | Description                                                                                                                                                                                                                                          | Service Responsible                                  |
