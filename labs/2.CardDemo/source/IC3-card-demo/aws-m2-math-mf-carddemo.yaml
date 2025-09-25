@@ -28,11 +28,13 @@ Parameters:
     Default: 'M2.m5.large'
     Type: String
 
-  #use with HighAvailabilityConfig parameter if you need HA
+  # High Availability Configuration Parameters
   DesiredCapacity:
-    Description: 'm2 desired capacity'
+    Description: 'm2 desired capacity (initial number of instances)'
     Default: 2
     Type: Number
+    MinValue: 1
+    MaxValue: 100
 
   AppKey:
     Description: 's3 app key'
@@ -125,6 +127,8 @@ Resources:
         - !Ref Subnet2Id
       SecurityGroupIds:
         - !GetAtt M2VpcSecGroup.GroupId
+      HighAvailabilityConfig:
+        DesiredCapacity: !Ref DesiredCapacity
       Tags:
         'env-name': !GetAtt M2Name.Value
 
@@ -392,4 +396,10 @@ Outputs:
   M2DbName:
     Description: 'm2 db name'
     Value: !GetAtt M2DbName.Value
+
+  M2ScalingConfig:
+    Description: 'M2 Environment High Availability Configuration'
+    Value: !Sub |
+      Desired Capacity: ${DesiredCapacity}
+      Instance Type: ${InstanceType}
 

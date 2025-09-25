@@ -291,4 +291,147 @@ c3270 -port <port-number> <dns-hostname>
 
 Refer to the application details page in the console to locate the Port and DNS Hostname.
 
+## High Availability and Environment Management
+
+The CardDemo application is configured with AWS M2 High Availability features to provide automatic scaling and traffic management capabilities. This section covers how to manage your environment after deployment.
+
+### High Availability Configuration
+
+The CloudFormation template includes the following High Availability parameters:
+
+- **DesiredCapacity** (Default: 2): Initial number of M2 instances to deploy
+- **MinCapacity** (Default: 1): Minimum number of instances for auto-scaling
+- **MaxCapacity** (Default: 10): Maximum number of instances for auto-scaling
+- **InstanceType** (Default: M2.m5.large): EC2 instance type for M2 runtime
+
+### Auto Scaling Behavior
+
+AWS M2 automatically manages your environment based on:
+
+1. **Traffic Load**: The system monitors incoming connections and transaction volume
+2. **Resource Utilization**: CPU, memory, and network usage are tracked
+3. **Health Status**: Instance health and application responsiveness
+
+**Scaling Triggers:**
+- **Scale Out**: When traffic increases or resource utilization exceeds thresholds
+- **Scale In**: When traffic decreases and resources are underutilized
+- **Health Replacement**: Automatically replaces unhealthy instances
+
+### Post-Deployment Environment Management
+
+#### 1. Monitoring Your Environment
+
+**AWS Console Monitoring:**
+- Navigate to **AWS Mainframe Modernization** → **Environments**
+- Select your environment to view:
+  - Current instance count and status
+  - Resource utilization metrics
+  - Scaling events and history
+  - Health status of individual instances
+
+**Key Metrics to Monitor:**
+- **Active Connections**: Number of TN3270 sessions
+- **Transaction Throughput**: CICS transaction processing rate
+- **Response Time**: Application response latency
+- **Resource Utilization**: CPU, memory, and network usage
+
+#### 2. Manual Scaling Operations
+
+**Scale Up for High Traffic:**
+```bash
+# Update CloudFormation stack with higher capacity
+aws cloudformation update-stack \
+  --stack-name your-stack-name \
+  --parameters ParameterKey=DesiredCapacity,ParameterValue=5 \
+               ParameterKey=MaxCapacity,ParameterValue=20 \
+  --capabilities CAPABILITY_NAMED_IAM
+```
+
+**Scale Down for Cost Optimization:**
+```bash
+# Update CloudFormation stack with lower capacity
+aws cloudformation update-stack \
+  --stack-name your-stack-name \
+  --parameters ParameterKey=DesiredCapacity,ParameterValue=1 \
+               ParameterKey=MinCapacity,ParameterValue=1 \
+               ParameterKey=MaxCapacity,ParameterValue=5 \
+  --capabilities CAPABILITY_NAMED_IAM
+```
+
+#### 3. Traffic Management Considerations
+
+**Load Distribution:**
+- AWS M2 automatically distributes traffic across available instances
+- Each instance can handle multiple concurrent TN3270 sessions
+- Database connections are pooled and managed efficiently
+
+**Session Affinity:**
+- TN3270 sessions maintain connection to specific instances
+- Automatic failover occurs if an instance becomes unhealthy
+- Users may need to reconnect if their instance is replaced
+
+**Performance Optimization:**
+- Monitor database connection pool utilization
+- Consider RDS read replicas for read-heavy workloads
+- Use CloudWatch alarms for proactive scaling
+
+#### 4. Database Considerations
+
+**RDS Aurora PostgreSQL Benefits:**
+- **Automatic Failover**: Multi-AZ deployment provides high availability
+- **Read Replicas**: Can be added for read scaling
+- **Backup and Recovery**: Automated backups with point-in-time recovery
+- **Performance Insights**: Built-in monitoring and optimization
+
+**Database Scaling:**
+- Aurora automatically scales storage (up to 128TB)
+- Instance scaling can be done with minimal downtime
+- Connection pooling handles multiple M2 instances efficiently
+
+#### 5. Cost Management
+
+**Scaling for Cost Optimization:**
+- Set appropriate MinCapacity based on baseline traffic
+- Use MaxCapacity to prevent unexpected cost spikes
+- Monitor usage patterns to optimize DesiredCapacity
+- Consider scheduled scaling for predictable workloads
+
+**Cost Monitoring:**
+- Use AWS Cost Explorer to track M2 and RDS costs
+- Set up billing alerts for budget management
+- Review scaling events to understand cost drivers
+
+#### 6. Maintenance and Updates
+
+**Planned Maintenance:**
+- AWS handles infrastructure maintenance automatically
+- Application updates can be deployed with zero downtime
+- Database maintenance windows are configurable
+
+**Rolling Updates:**
+- M2 supports rolling deployments for application updates
+- Instances are updated one at a time to maintain availability
+- Health checks ensure updates don't impact running sessions
+
+### Best Practices
+
+1. **Start Conservative**: Begin with lower capacity and scale up based on actual usage
+2. **Monitor Continuously**: Set up CloudWatch alarms for key metrics
+3. **Plan for Peaks**: Configure MaxCapacity to handle expected traffic spikes
+4. **Test Scaling**: Validate scaling behavior under controlled conditions
+5. **Document Procedures**: Maintain runbooks for common scaling operations
+
+### Troubleshooting Scaling Issues
+
+**Common Issues:**
+- **Scaling Too Aggressively**: Adjust scaling thresholds in CloudWatch
+- **Insufficient Capacity**: Increase MaxCapacity or instance size
+- **Database Bottlenecks**: Monitor RDS performance and consider scaling
+- **Network Issues**: Check security groups and VPC configuration
+
+**Recovery Procedures:**
+- Manual scaling via CloudFormation updates
+- Instance replacement through AWS console
+- Database failover (automatic with Aurora Multi-AZ)
+
 
