@@ -12,6 +12,7 @@ It includes tools and services to assess, replatform, and refactor mainframe app
   - [Step 3: Deployment and Operation](#step-3-deployment-and-operation)
 - [Lab environment](#lab-environment)
   - [1. Replatform](#1-replatform)
+  - [2. Refactor](#2-refactor)
 
 Mind map:
 ![mindmap](./images/NotebookLM%20Mind%20Map.png)
